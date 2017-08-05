@@ -1,0 +1,18 @@
+{
+  "name": "eslint-plugin-log-linter",
+  "version": "0.0.1",
+  "description": "ESLint rules for error log reports",
+  "author": {
+    "name": "Michael Yakubov",
+    "email": "michael.yakubov.1985@gmail.com"
+  },
+  "license": "Apache-2.0",
+  "main": "index.js",
+  "devDependencies": {
+    "eslint": "latest",
+    "grunt-mocha": "latest"
+  },
+  "scripts": {
+    "test": "node node_modules/mocha/bin/mocha tests/**/*spec.js --reporter spec"
+  }
+}

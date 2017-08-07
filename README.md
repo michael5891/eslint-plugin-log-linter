@@ -21,10 +21,20 @@ It is using the ESLint library to help validate logging standards.
     npm install --save-dev eslint
     ```
 
-2. Install `eslint-plugin-log-linter` as a dev-dependency:
+2. Install `eslint-plugin-log-linter`:
+
+    If ESLint is installed globally, 
+    then make sure eslint-plugin-log-linter is also installed globally. 
+    A globally-installed ESLint cannot find a locally-installed plugin.     
 
     ```shell
-    npm install --save-dev eslint-plugin-log-linter
+     npm install eslint-plugin-log-linter -save-dev
+    ```
+
+    If ESLint is installed locally, then make sure eslint-plugin-log-linter is also installed locally.
+
+    ```shell
+     npm install eslint-plugin-log-linter -save-dev
     ```
 
 3. Enable the plugin by adding it to your `.eslintrc`:

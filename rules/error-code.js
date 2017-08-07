@@ -110,7 +110,7 @@ module.exports = {
             },
             'CallExpression:exit':function (node) {
                 //interrupt on *.error() call expression
-                if(node.callee.property.name === 'error') {
+                if(node.callee && node.callee.property && node.callee.property.name === 'error') {
                     let valid = false;
                     let identifierNode = null;
                     for(let arg of node.arguments) {

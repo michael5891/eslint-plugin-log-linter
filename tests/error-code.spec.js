@@ -7,6 +7,14 @@
 const rule = require("../rules/error-code");
 const RuleTester = require("../node_modules/eslint/lib/testers/rule-tester");
 
+var fs = require('fs');
+
+require.extensions['.txt'] = function (module, filename) {
+    module.exports = fs.readFileSync(filename, 'utf8');
+};
+
+var codeForTest = require("./codeForTest.txt");
+
 //------------------------------------------------------------------------------
 // Tests
 //------------------------------------------------------------------------------
@@ -17,6 +25,11 @@ const errorCodePropName = "code";
 
 ruleTester.run("error-code", rule, {
     valid: [
+        {
+            //complex block to inspect
+            code: codeForTest,
+            options: [errorCodePropName]
+        },
         {
             //error code on init
             code:   "var arg = {a:222, b:'mish', code:'error code context'}; " +

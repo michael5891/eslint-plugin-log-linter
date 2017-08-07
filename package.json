@@ -1,6 +1,6 @@
 {
   "name": "eslint-plugin-log-linter",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "ESLint rules for error log reports",
   "author": {
     "name": "Michael Yakubov",

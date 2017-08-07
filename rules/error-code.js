@@ -3,6 +3,9 @@
 /**
  * Require error logs to be provided with argument caring an error code property.
  *
+ * Check esprima ECMAScript parser, has an online code parsing representation.
+ * http://esprima.org/demo/parse.html
+ *
  * ### Options
  *
  * - The argument error code property name. (Default: 'errorCode')
@@ -71,33 +74,61 @@ module.exports = {
             return (node.type === 'MemberExpression' && node.property.name === errorCodeProperty);
         }
 
+        function getScopeVariables(scope) {
+            let retVal = null;
+            if(scope.type === 'FunctionExpression') {
+                retVal = context.getDeclaredVariables(scope);
+            } else if(scope.type === 'Program'){
+                retVal = globalScope.variables;
+            }
+            return retVal;
+        }
+
         /**
          * Scan code for identifier references
          * @param context
          * @param {ASTNode} identifier
          * @returns {boolean}
          */
-        function errorCodeDefined(context, identifier) {
-            let retVal = false;
-            for(let idx = 0; idx < globalScope.variables.length; idx++) {
-                const variable = globalScope.variables[idx];
-                if(variable && variable.name === identifier.name && variable.references) {
-                    //browse references for errorCode definition
-                    for(let refIdx = 0; refIdx < variable.references.length; refIdx++) {
-                        let ref = variable.references[refIdx];
-                        if(ref.init) {
-                            retVal = checkInitDefinitionForErrorCode(ref.resolved);
-                        } else if(ref.writeExpr && ref.writeExpr.type === 'ObjectExpression') {
-                            retVal = checkPropertiesForErrorCode(ref.writeExpr);
-                        } else if(ref.writeExpr && ref.writeExpr.type === 'NewExpression') {
-                            //do nothing, error code should be explicitly defined not as part of a class definition.
-                        } else if(ref.identifier) { //object extended though dot notation
-                            retVal = checkDotExtentionForErrorCode(ref.identifier);
-                        }
-                        if(retVal) {
-                            break;
-                        }
+        function checkIdentifierInScopeForErrorCode(identifier, scope) {
+            var retVal = null;
+            var scopeVariables = getScopeVariables(scope);
+            if(scopeVariables) {
+                for(var idx=0; idx < scopeVariables.length; idx++) {
+                    var variable = scopeVariables[idx];
+                    if(variable && variable.name === identifier.name && variable.references) {
+                        retVal = checkVariableForErrorCode(variable);
+                        break;
                     }
+                }
+            } else {
+                retVal = checkIdentifierInScopeForErrorCode(identifier, scope.parent);
+            }
+
+            return retVal;
+        }
+
+        /**
+         * Scan code for variable references.
+         * @param variable
+         * @returns {boolean}
+         */
+        function checkVariableForErrorCode(variable) {
+            let retVal = false;
+            //browse references for errorCode definition
+            for(let refIdx = 0; refIdx < variable.references.length; refIdx++) {
+                let ref = variable.references[refIdx];
+
+                if(ref.init) {
+                    retVal = checkInitDefinitionForErrorCode(ref.resolved);
+                } else if(ref.writeExpr && ref.writeExpr.type === 'ObjectExpression') {
+                    retVal = checkPropertiesForErrorCode(ref.writeExpr);
+                } else if(ref.writeExpr && ref.writeExpr.type === 'NewExpression') {
+                    //do nothing, error code should be explicitly defined not as part of a class definition.
+                } else if(ref.identifier && ref.identifier.parent.type === 'MemberExpression') { //object extended though dot notation
+                    retVal = checkDotExtentionForErrorCode(ref.identifier);
+                }
+                if(retVal) {
                     break;
                 }
             }
@@ -112,11 +143,9 @@ module.exports = {
                 //interrupt on *.error() call expression
                 if(node.callee && node.callee.property && node.callee.property.name === 'error') {
                     let valid = false;
-                    let identifierNode = null;
                     for(let arg of node.arguments) {
                         if(arg.type === 'Identifier') {
-                            identifierNode = arg;
-                            if(errorCodeDefined(context, identifierNode)) {
+                            if(checkIdentifierInScopeForErrorCode(arg, arg.parent)) {
                                 valid = true;
                                 break;
                             }

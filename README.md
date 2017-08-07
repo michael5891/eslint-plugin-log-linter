@@ -28,7 +28,7 @@ It is using the ESLint library to help validate logging standards.
     A globally-installed ESLint cannot find a locally-installed plugin.     
 
     ```shell
-     npm install eslint-plugin-log-linter -save-dev
+     npm install eslint-plugin-log-linter -global
     ```
 
     If ESLint is installed locally, then make sure eslint-plugin-log-linter is also installed locally.

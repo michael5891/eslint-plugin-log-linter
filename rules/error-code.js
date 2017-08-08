@@ -144,7 +144,7 @@ module.exports = {
                     retVal = checkPropertiesForErrorCode(ref.writeExpr);
                 } else if(ref.writeExpr && ref.writeExpr.type === 'NewExpression') {
                     //do nothing, error code should be explicitly defined not as part of a class definition.
-                } else if(ref.identifier && ref.identifier.parent.type === 'MemberExpression') { //object extended though dot notation
+                } else if(ref.identifier && ref.identifier.parent && ref.identifier.parent.type === 'MemberExpression') { //object extended though dot notation
                     retVal = checkDotExtentionForErrorCode(ref.identifier);
                 }
                 if(retVal) {

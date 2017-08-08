@@ -32,11 +32,13 @@ module.exports = {
          */
         function checkPropertiesForErrorCode(source) {
             let retVal = false;
-            for(let propIdx = 0; propIdx < source.properties.length; propIdx++) {
-                let prop = source.properties[propIdx];
-                if(prop.key.name === errorCodeProperty) {
-                    retVal = true;
-                    break;
+            if(source && source.type !== 'CallExpression') {
+                for(let propIdx = 0; propIdx < source.properties.length; propIdx++) {
+                    let prop = source.properties[propIdx];
+                    if(prop.key.name === errorCodeProperty) {
+                        retVal = true;
+                        break;
+                    }
                 }
             }
             return retVal;
@@ -75,12 +77,29 @@ module.exports = {
         }
 
         function getScopeVariables(scope) {
-            let retVal = null;
-            if(scope.type === 'FunctionExpression') {
-                retVal = context.getDeclaredVariables(scope);
-            } else if(scope.type === 'Program'){
-                retVal = globalScope.variables;
+            let retVal = [];
+
+            switch(scope.type) {
+                case 'CatchClause':
+                case 'FunctionExpression':
+                case 'FunctionDeclaration':
+                case 'ArrowFunctionExpression': {
+                    retVal = context.getDeclaredVariables(scope);
+                    break;
+                }
+                case 'BlockStatement':{
+                    for(let idx=0; idx < scope.body.length; idx++) {
+                        let vars = context.getDeclaredVariables(scope.body[idx]);
+                        retVal = retVal.concat(vars);
+                    }
+                    break;
+                }
+                case 'Program':{
+                    retVal = globalScope.variables;
+                    break;
+                }
             }
+
             return retVal;
         }
 
@@ -93,7 +112,7 @@ module.exports = {
         function checkIdentifierInScopeForErrorCode(identifier, scope) {
             var retVal = null;
             var scopeVariables = getScopeVariables(scope);
-            if(scopeVariables) {
+            if(scopeVariables && scopeVariables.length > 0) {
                 for(var idx=0; idx < scopeVariables.length; idx++) {
                     var variable = scopeVariables[idx];
                     if(variable && variable.name === identifier.name && variable.references) {
@@ -101,7 +120,7 @@ module.exports = {
                         break;
                     }
                 }
-            } else {
+            } else if(scope.type !== 'Program') {
                 retVal = checkIdentifierInScopeForErrorCode(identifier, scope.parent);
             }
 

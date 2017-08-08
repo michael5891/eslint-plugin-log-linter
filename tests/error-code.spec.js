@@ -13,7 +13,8 @@ require.extensions['.txt'] = function (module, filename) {
     module.exports = fs.readFileSync(filename, 'utf8');
 };
 
-var codeForTest = require("./codeForTest.txt");
+var validCode = require("./validCode.txt");
+var invalidCode = require("./invalidCode.txt");
 
 //------------------------------------------------------------------------------
 // Tests
@@ -23,60 +24,27 @@ const ruleTester = new RuleTester();
 
 const errorCodePropName = "code";
 
+const errorMessage = { message: `Error logs must be provided with argument caring an error code property: ${errorCodePropName}`};
+
 ruleTester.run("error-code", rule, {
     valid: [
         {
-            //complex block to inspect
-            code: codeForTest,
-            options: [errorCodePropName]
-        },
-        {
-            //error code on init
-            code:   "var arg = {a:222, b:'mish', code:'error code context'}; " +
-                    "console.error('text', arg);",
-            options: [errorCodePropName]
-        },
-        {
-            //error code on override
-            code:   "var arg = {a:222, b:'mish'}; " +
-                    "arg = {code:'error code context'};" +
-                    "console.error('text', arg);",
-            options: [errorCodePropName]
-        },
-        {
-            //error code on dot notation
-            code:   "var arg = {a:222, b:'mish'}; " +
-                    "arg.code = 'error code context';" +
-                    "console.error('text', arg);",
-            options: [errorCodePropName]
-        },
-        {
-            //multiple arguments on call expression
-            code:   "var arg = {a:222, b:'mish'}; " +
-                    "var arg2 = {a:222, b:'mish'}; " +
-                    "arg.code = 'error code context';" +
-                    "console.error('text', arg2, arg);",
-            options: [errorCodePropName]
+            code: validCode,
+            options: [errorCodePropName],
+            parserOptions: {
+                ecmaVersion: 6
+            }
         }
     ],
     invalid: [
         {
-            code: "console.error('text')",
+            code: invalidCode,
             options: [errorCodePropName],
-            errors: [{ message: `Error logs must be provided with argument caring an error code property: ${errorCodePropName}`}]
+            parserOptions: {
+                ecmaVersion: 6
+            },
+            //error message for each invalid test... ugly I know...
+            errors: [errorMessage, errorMessage, errorMessage, errorMessage, errorMessage, errorMessage]
         },
-        {
-            code:   "var arg = {a:222, b:'mish'}; " +
-                    "console.error('text', arg);",
-            options: [errorCodePropName],
-            errors: [{ message: `Error logs must be provided with argument caring an error code property: ${errorCodePropName}`}]
-        },
-        {
-            code:   "var arg = {a:222, b:'mish'}; " +
-                    "arg.myError = 2435;" +
-                    "console.error('text', arg);",
-            options: [errorCodePropName],
-            errors: [{ message: `Error logs must be provided with argument caring an error code property: ${errorCodePropName}`}]
-        }
     ]
 });

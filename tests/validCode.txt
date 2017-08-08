@@ -1,0 +1,51 @@
+// error code on init
+function codeOnInit() {
+    var arg = {a:222, code:'error code context'};
+    console.error('text', arg);
+}
+
+// error code on member expression
+function codeOnMemberExpression() {
+    var arg = {a:222};
+    arg = {code:'error code context'};
+    console.error('text', arg);
+}
+
+// error code on dot notation
+function codeOnDotNotation() {
+    var arg = {a:222};
+    arg.code = 'error code context';
+    console.error('text', arg);
+}
+
+// error code on catch statement
+function codeOnTryCatch() {
+    try {
+        //do something
+    } catch(err) {
+        err.code = 'error code';
+        console.error('codeOnTryCatch', err);
+    }
+}
+
+// error code on function declaration parameter
+function codeOnFunctionDeclarationParameter(err) {
+    err.code = 'error code';
+    console.error('codeOnFunctionDeclarationParameter', err);
+}
+
+// error code on Function expression parameter
+function codeOnFunctionExpressionParameter() {
+    var result = function (err){
+        err.code = 'error code';
+        console.error('codeOnFunctionExpressionParameter', err);
+    };
+}
+
+// error code on Arrow Function parameter
+function codeOnArrowFunctionExpressionParameter() {
+    var result = (err) => {
+        err.code = 'error code';
+        console.error('codeOnArrowFunctionExpressionParameter', err);
+    };
+}

@@ -1,0 +1,38 @@
+// no arguments
+function codeOnInit() {
+    console.error('text');
+}
+
+// arguments with no error code
+function codeOnInit() {
+    var arg = {a:222};
+    console.error('text', arg);
+}
+
+// try catch statement
+function codeOnTryCatch() {
+    try {
+        //do something
+    } catch(err) {
+        console.error('text', err);
+    }
+}
+
+// function declaration parameter
+function codeOnFunctionDeclarationParameter(err) {
+    console.error('text', err);
+}
+
+// function expression parameter
+function codeOnFunctionExpressionParameter() {
+    var result = function (err) {
+        console.error('codeOnFunctionExpressionParameter', err);
+    };
+}
+
+// Arrow function expression parameter
+function codeOnArrowFunctionExpressionParameter() {
+    var result = (err) => {
+        console.error('codeOnArrowFunctionExpressionParameter', err);
+    };
+}

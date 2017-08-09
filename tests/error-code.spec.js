@@ -44,7 +44,7 @@ ruleTester.run("error-code", rule, {
                 ecmaVersion: 6
             },
             //error message for each invalid test... ugly I know...
-            errors: [errorMessage, errorMessage, errorMessage, errorMessage, errorMessage, errorMessage]
+            errors: [errorMessage, errorMessage, errorMessage, errorMessage, errorMessage, errorMessage, errorMessage]
         },
     ]
 });

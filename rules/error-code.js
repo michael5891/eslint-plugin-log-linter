@@ -13,6 +13,8 @@
  * @author: Michael Yakubov
  */
 
+const astUtils = require('eslint/lib/ast-utils');
+
 module.exports = {
     meta: {
         //options input validation schema
@@ -32,7 +34,7 @@ module.exports = {
          */
         function checkPropertiesForErrorCode(source) {
             let retVal = false;
-            if(source && source.type !== 'CallExpression') {
+            if(source && source.type !== 'CallExpression' && source.properties) {
                 for(let propIdx = 0; propIdx < source.properties.length; propIdx++) {
                     let prop = source.properties[propIdx];
                     if(prop.key.name === errorCodeProperty) {
@@ -76,57 +78,6 @@ module.exports = {
             return (node.type === 'MemberExpression' && node.property.name === errorCodeProperty);
         }
 
-        function getScopeVariables(scope) {
-            let retVal = [];
-
-            switch(scope.type) {
-                case 'CatchClause':
-                case 'FunctionExpression':
-                case 'FunctionDeclaration':
-                case 'ArrowFunctionExpression': {
-                    retVal = context.getDeclaredVariables(scope);
-                    break;
-                }
-                case 'BlockStatement':{
-                    for(let idx=0; idx < scope.body.length; idx++) {
-                        let vars = context.getDeclaredVariables(scope.body[idx]);
-                        retVal = retVal.concat(vars);
-                    }
-                    break;
-                }
-                case 'Program':{
-                    retVal = globalScope.variables;
-                    break;
-                }
-            }
-
-            return retVal;
-        }
-
-        /**
-         * Scan code for identifier references
-         * @param context
-         * @param {ASTNode} identifier
-         * @returns {boolean}
-         */
-        function checkIdentifierInScopeForErrorCode(identifier, scope) {
-            var retVal = null;
-            var scopeVariables = getScopeVariables(scope);
-            if(scopeVariables && scopeVariables.length > 0) {
-                for(var idx=0; idx < scopeVariables.length; idx++) {
-                    var variable = scopeVariables[idx];
-                    if(variable && variable.name === identifier.name && variable.references) {
-                        retVal = checkVariableForErrorCode(variable);
-                        break;
-                    }
-                }
-            } else if(scope.type !== 'Program') {
-                retVal = checkIdentifierInScopeForErrorCode(identifier, scope.parent);
-            }
-
-            return retVal;
-        }
-
         /**
          * Scan code for variable references.
          * @param variable
@@ -162,14 +113,18 @@ module.exports = {
                 //interrupt on *.error() call expression
                 if(node.callee && node.callee.property && node.callee.property.name === 'error') {
                     let valid = false;
-                    for(let arg of node.arguments) {
-                        if(arg.type === 'Identifier') {
-                            if(checkIdentifierInScopeForErrorCode(arg, arg.parent)) {
+                    var currScope = context.getScope();
+
+                    for (let arg of node.arguments) {
+                        if (arg.type === 'Identifier') {
+                            var variable = astUtils.getVariableByName(currScope, arg.name);
+                            if(variable && variable.references && checkVariableForErrorCode(variable)) {
                                 valid = true;
                                 break;
                             }
                         }
                     }
+
                     if(!valid) {
                         context.report(node, `Error logs must be provided with argument caring an error code property: ${errorCodeProperty}`);
                     }

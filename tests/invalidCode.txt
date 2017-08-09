@@ -36,3 +36,9 @@ function codeOnArrowFunctionExpressionParameter() {
         console.error('codeOnArrowFunctionExpressionParameter', err);
     };
 }
+
+// error code direct assign instead of sub property
+function codeDirectAssign(value) {
+    var err = value.code;
+    console.error('codeDirectAssign', err);
+}
